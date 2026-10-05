@@ -13,7 +13,13 @@ export const taskIdParamSchema = z.object({
 });
 
 export const assignTaskSchema = z.object({
-  assigned_to: z.string().min(1).max(100),
+  // UUID de la cuenta del personal (verificado contra el JWT en la fase de
+  // roles; reemplaza el nombre libre que se prestaba a suplantacion).
+  assigned_to_user_id: z.string().uuid(),
+});
+
+export const listMineQuerySchema = z.object({
+  status: z.enum(TASK_STATUSES).optional(),
 });
 
 export const listRoomStatusQuerySchema = z.object({
@@ -29,6 +35,7 @@ export const setRoomStatusSchema = z.object({
 });
 
 export type ListTasksQuery = z.infer<typeof listTasksQuerySchema>;
+export type ListMineQuery = z.infer<typeof listMineQuerySchema>;
 export type AssignTaskInput = z.infer<typeof assignTaskSchema>;
 export type ListRoomStatusQuery = z.infer<typeof listRoomStatusQuerySchema>;
 export type SetRoomStatusInput = z.infer<typeof setRoomStatusSchema>;

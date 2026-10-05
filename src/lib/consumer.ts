@@ -5,6 +5,7 @@ import { fetchBooking } from "./booking-client.js";
 export interface CheckoutCompletedPayload {
   booking_id: string;
   physical_room_number: string;
+  physical_room_id?: string | null;
 }
 
 type PrismaLike = typeof prisma;
@@ -44,10 +45,16 @@ export async function handleCheckoutCompleted(
     },
     create: {
       hotel_id: booking.hotel_id,
+      physical_room_id: payload.physical_room_id ?? null,
       room_number: payload.physical_room_number,
       status: "dirty",
     },
-    update: { status: "dirty" },
+    update: {
+      status: "dirty",
+      ...(payload.physical_room_id
+        ? { physical_room_id: payload.physical_room_id }
+        : {}),
+    },
   });
 
   await db.cleaningHistory.upsert({
@@ -56,6 +63,7 @@ export async function handleCheckoutCompleted(
       room_status_id: roomStatus.room_status_id,
       booking_id: payload.booking_id,
       hotel_id: booking.hotel_id,
+      physical_room_id: payload.physical_room_id ?? null,
       room_number: payload.physical_room_number,
       status: "pending",
     },

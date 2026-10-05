@@ -45,7 +45,12 @@ describe("handleHousekeepingEvent", () => {
       where: {
         hotel_id_room_number: { hotel_id: HOTEL_ID, room_number: "101" },
       },
-      create: { hotel_id: HOTEL_ID, room_number: "101", status: "dirty" },
+      create: {
+        hotel_id: HOTEL_ID,
+        physical_room_id: null,
+        room_number: "101",
+        status: "dirty",
+      },
       update: { status: "dirty" },
     });
     expect(db.cleaningHistory.upsert).toHaveBeenCalledWith({
@@ -54,9 +59,39 @@ describe("handleHousekeepingEvent", () => {
         room_status_id: ROOM_STATUS_ID,
         booking_id: BOOKING_ID,
         hotel_id: HOTEL_ID,
+        physical_room_id: null,
         room_number: "101",
         status: "pending",
       },
+      update: {},
+    });
+  });
+
+  it("should persist the physical room uuid when the checkout carries it", async () => {
+    const db = mockDb();
+    const physicalRoomId = "f1b2c3d4-e5f6-4890-abcd-ef1234567890";
+
+    await handleHousekeepingEvent(db, "checkout.completed", {
+      booking_id: BOOKING_ID,
+      physical_room_number: "101",
+      physical_room_id: physicalRoomId,
+    });
+
+    expect(db.roomStatus.upsert).toHaveBeenCalledWith({
+      where: {
+        hotel_id_room_number: { hotel_id: HOTEL_ID, room_number: "101" },
+      },
+      create: {
+        hotel_id: HOTEL_ID,
+        physical_room_id: physicalRoomId,
+        room_number: "101",
+        status: "dirty",
+      },
+      update: { status: "dirty", physical_room_id: physicalRoomId },
+    });
+    expect(db.cleaningHistory.upsert).toHaveBeenCalledWith({
+      where: { booking_id: BOOKING_ID },
+      create: expect.objectContaining({ physical_room_id: physicalRoomId }),
       update: {},
     });
   });
