@@ -1,3 +1,4 @@
+import { gatewayHeaders } from "../middleware/gateway.js";
 import { AppError } from "../middleware/error-handler.js";
 
 function userServiceUrl(): string {
@@ -37,7 +38,10 @@ export async function fetchHotelStaff(
   const res = await fetch(
     `${baseUrl}/admin/users?hotel_id=${encodeURIComponent(hotelId)}`,
     {
-      headers: authorization ? { Authorization: authorization } : {},
+      headers: {
+        ...gatewayHeaders(),
+        ...(authorization ? { Authorization: authorization } : {}),
+      },
       signal: AbortSignal.timeout(5000),
     }
   );

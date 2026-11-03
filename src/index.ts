@@ -1,4 +1,5 @@
 import express from "express";
+import { requireGateway } from "./middleware/gateway.js";
 import { errorHandler } from "./middleware/error-handler.js";
 import tasksRouter from "./routes/tasks.js";
 import roomsRouter from "./routes/rooms.js";
@@ -8,6 +9,8 @@ import { broker } from "./lib/broker.js";
 
 const app = express();
 const PORT = process.env.PORT || 3006;
+
+app.use(requireGateway);
 
 app.use(express.json());
 
